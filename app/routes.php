@@ -71,7 +71,6 @@ $app->get('/api/film/{id}', function ($id, Request $request) use ($app) {
 		);
 	} else {
 		throw new \Exception("Aucun film de correspond à l'id ".$id);
-		exit();
 	}
 	if (!isset($film)) {
 		$app->abort(404, "Ce film n'existe pas");
@@ -107,47 +106,74 @@ $app->post('/api/film/create', function (Request $request) use ($app) {
 	}
 
 	$film = array();
-	$film->setState(1);
-	$film->setTitre($request->request->get('titre'));
-	$film->setNom_type($request->request->get('nom_type'));
-  if ($request->request->has('saison')) {
-  	 $film->setSaison($request->request->get('saison'));
-  } else {
-     $film->setSaison(1);
-  }
-  if ($request->request->has('episode')) {
-  	 $film->setEpisode($request->request->get('episode'));
-  } else {
-     $film->setEpisode(1);
-  }
-  if ($request->request->has('epmax')) {
-    $film->setEpmax($request->request->get('epmax'));
-  }
-  $film->setEtat($request->request->get('etat'));
-  if ($request->request->has('img_av')) {
-    $film->setImg_av($request->request->get('img_av'));
-  }
-  if ($request->request->has('url')) {
-    $film->setUrl($request->request->get('url'));
-  }
-  if ($request->request->has('last_update')) {
-    $film->setLast_update($request->request->get('last_update'));
-  }
+	$film['state'] = 1;
+	$film['titre'] = $request->request->get('titre');
+	$film['nom_type'] = $request->request->get('nom_type');
+	if ($request->request->has('saison')) {
+		$film['saison'] = $request->request->get('saison');
+	} else {
+		$film['saison'] = 1;
+	}
+	if ($request->request->has('episode')) {
+		$film['episode'] = $request->request->get('episode');
+	} else {
+		$film['episode'] = 0;
+	}
+	if ($request->request->has('epmax')) {
+		$film['epmax'] = $request->request->get('epmax');
+	} else {
+		$film['epmax'] = 999;
+	}
+	$film['etat'] = $request->request->get('etat');
+	if ($request->request->has('img_av')) {
+		$film['img_av'] = $request->request->get('img_av');
+	} else {
+		$film['img_av'] = "";
+	}
+	if ($request->request->has('url')) {
+		$film['url'] = $request->request->get('url');
+	} else {
+		$film['url'] = "";
+	}
+	$film['last_update'] = date_create()->format('Y-m-d H:i:s');
+	// $film['last_update'] = $request->request->get('last_update');
+	$ordering = $app['db']->lastInsertId();
 
-	$app['dao.film']->save($film);
+	$filmData = array(
+		'state' => $film['state'],
+		'ordering' => $ordering,
+		'checked_out' => 0,
+		'checked_out_time' => date_create()->format('Y-m-d H:i:s'),
+		'created_by' => 438,
+		'titre' => $film['titre'],
+		'nom_type' => $film['nom_type'],
+		'saison' => $film['saison'],
+		'episode' => $film['episode'],
+		'epmax' => $film['epmax'],
+		'etat' => $film['etat'],
+		'img_av' => $film['img_av'],
+		'url' => $film['url'],
+		'last_update' => $film['last_update']
+	);
+
+	$app['db']->insert('jos_diabwbs_serie', $filmData);
+	$id = $app['db']->lastInsertId();
+	$app['db']->update('jos_diabwbs_serie', array('ordering' => $id), array('id' => $id));
+
+
 
 	$responseData = array(
-		'id' => $film->getId(),
-    'state' => $film->getState(),
-    'titre' => $film->getTitre(),
-    'nom_type' => $film->getNom_type(),
-    'saison' => $film->getSaison(),
-    'episode' => $film->getEpisode(),
-    'epmax' => $film->getEpmax(),
-    'etat' => $film->getEtat(),
-    'img_av' => $film->getImg_av(),
-    'url' => $film->getUrl(),
-    'last_update' => $film->getLast_update()
+		'id' => $id,
+		'state' => $film['state'],
+		'titre' => $film['titre'],
+		'nom_type' => $film['nom_type'],
+		'saison' => $film['saison'],
+		'episode' => $film['episode'],
+		'epmax' => $film['epmax'],
+		'etat' => $film['etat'],
+		'img_av' => $film['img_av'],
+		'url' => $film['url'],
+		'last_update' => $film['last_update']
 	);
 
 	return $app->json($responseData, 201);
@@ -155,54 +181,86 @@ $app->post('/api/film/create', function (Request $request) use ($app) {
 
 // Delete film
 $app->delete('/api/film/delete/{id}', function ($id, Request $request) use ($app) {
-	$app['dao.film']->delete($id);
+	// $app['dao.film']->delete($id);
+	$app['db']->delete('jos_diabwbs_serie', array('id' => $id));
 
 	return $app->json('No content', 204);
 })->bind('api_film_delete');
 
 // Update film
 $app->put('/api/film/update/{id}', function ($id, Request $request) use ($app) {
-	$film = $app['dao.film']->find($id);
 
-	$film->setTitre($request->request->get('titre'));
-	$film->setNom_type($request->request->get('nom_type'));
-  if ($request->request->has('saison')) {
-  	 $film->setSaison($request->request->get('saison'));
-  } else {
-     $film->setSaison(1);
-  }
-  if ($request->request->has('episode')) {
-  	 $film->setEpisode($request->request->get('episode'));
-  } else {
-     $film->setEpisode(1);
-  }
-  if ($request->request->has('epmax')) {
-    $film->setEpmax($request->request->get('epmax'));
-  }
-  $film->setEtat($request->request->get('etat'));
-  if ($request->request->has('img_av')) {
-    $film->setImg_av($request->request->get('img_av'));
-  }
-  if ($request->request->has('url')) {
-    $film->setUrl($request->request->get('url'));
-  }
-  if ($request->request->has('last_update')) {
-    $film->setLast_update($request->request->get('last_update'));
-  }
-	$app['dao.film']->save($film);
+	$sql = "SELECT * FROM jos_diabwbs_serie WHERE id=?";
+	$row = $app['db']->fetchAssoc($sql, array($id));
+
+	if ($row) {
+		$film = array(
+			'id' => $row['id'],
+			'state' => $row['state'],
+			'titre' => $row['titre'],
+			'nom_type' => $row['nom_type'],
+			'saison' => $row['saison'],
+			'episode' => $row['episode'],
+			'epmax' => $row['epmax'],
+			'etat' => $row['etat'],
+			'img_av' => $row['img_av'],
+			'url' => $row['url'],
+			'last_update' => $row['last_update'],
+		);
+	} else {
+		throw new \Exception("Aucun film de correspond à l'id ".$id);
+	}
+	if (!isset($film)) {
+		$app->abort(404, "Ce film n'existe pas");
+	}
+
+	// $film = $app['dao.film']->find($id);
+
+	if ($request->request->has('state')) {
+		$film['state'] = $request->request->get('state');
+	} else {
+		$film['state'] = 1;
+	}
+	$film['titre'] = $request->request->get('titre');
+	$film['nom_type'] = $request->request->get('nom_type');
+	if ($request->request->has('saison')) {
+		$film['saison'] = $request->request->get('saison');
+	} else {
+		$film['saison'] = 1;
+	}
+	if ($request->request->has('episode')) {
+		$film['episode'] = $request->request->get('episode');
+	} else {
+		$film['episode'] = 0;
+	}
+	if ($request->request->has('epmax')) {
+		$film['epmax'] = $request->request->get('epmax');
+	}
+	$film['etat'] = $request->request->get('etat');
+	if ($request->request->has('img_av')) {
+		$film['img_av'] = $request->request->get('img_av');
+	}
+	if ($request->request->has('url')) {
+		$film['url'] = $request->request->get('url');
+	}
+	$film['last_update'] = date_create()->format('Y-m-d H:i:s');
+
+	$app['db']->update('jos_diabwbs_serie', $film, array('id' => $id));
+
+	// $app['dao.film']->save($film);
 
 	$responseData = array(
-		'id' => $film->getId(),
-    'state' => $film->getState(),
-    'titre' => $film->getTitre(),
-    'nom_type' => $film->getNom_type(),
-    'saison' => $film->getSaison(),
-    'episode' => $film->getEpisode(),
-    'epmax' => $film->getEpmax(),
-    'etat' => $film->getEtat(),
-    'img_av' => $film->getImg_av(),
-    'url' => $film->getUrl(),
-    'last_update' => $film->getLast_update()
+		'id' => $id,
+		'state' => $film['state'],
+		'titre' => $film['titre'],
+		'nom_type' => $film['nom_type'],
+		'saison' => $film['saison'],
+		'episode' => $film['episode'],
+		'epmax' => $film['epmax'],
+		'etat' => $film['etat'],
+		'img_av' => $film['img_av'],
+		'url' => $film['url'],
+		'last_update' => $film['last_update']
 	);
 
 	return $app->json($responseData, 202);
