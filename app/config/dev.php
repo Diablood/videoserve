@@ -2,7 +2,7 @@
 
 // Doctrine (db)
 $app['db.options'] = array(
-    'dbname' => 'diabloodwebsite',
+    'dbname' => 'diablood',
     'user' => 'diablood',
     'password' => 'Lunaire29',
     'host' => '127.0.0.1',
