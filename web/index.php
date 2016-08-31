@@ -1,5 +1,7 @@
 <?php
 
+header('Access-Control-Allow-Origin: *');
+
 $loader = require_once __DIR__.'/../vendor/autoload.php';
 
 $app = new Silex\Application();

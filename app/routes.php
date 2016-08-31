@@ -56,11 +56,11 @@ $app->get('/api/films', function () use ($app) {
  *   Find all films by $state
  *
  */
-$app->get('/api/films/state/{state}', function ($state) use ($app) {
+$app->get('/api/films/type/{type}', function ($type) use ($app) {
 
 	$responseData = array();
-	$sql = "SELECT * FROM jos_diabwbs_serie WHERE state=? ORDER BY titre";
-	$result = $app['db']->fetchAll($sql, array($state));
+	$sql = "SELECT * FROM jos_diabwbs_serie WHERE nom_type=? ORDER BY titre";
+	$result = $app['db']->fetchAll($sql, array($type));
 
 	$films = array();
 	foreach ( $result as $row ) {
