@@ -16,20 +16,7 @@ $app->get('/api/films', function () use ($app) {
 	$films = array();
 	foreach ( $result as $row ) {
 		$id = $row['id'];
-
-		$films[$id] = array(
-			'id' => $row['id'],
-			'state' => $row['state'],
-			'titre' => $row['titre'],
-			'nom_type' => $row['nom_type'],
-			'saison' => $row['saison'],
-			'episode' => $row['episode'],
-			'epmax' => $row['epmax'],
-			'etat' => $row['etat'],
-			'img_av' => $row['img_av'],
-			'url' => $row['url'],
-			'last_update' => $row['last_update'],
-		);
+		$films[$id] = $row;
 	}
 
 	foreach ($films as $film) {
@@ -65,20 +52,7 @@ $app->get('/api/films/type/{type}', function ($type) use ($app) {
 	$films = array();
 	foreach ( $result as $row ) {
 		$id = $row['id'];
-
-		$films[$id] = array(
-			'id' => $row['id'],
-			'state' => $row['state'],
-			'titre' => $row['titre'],
-			'nom_type' => $row['nom_type'],
-			'saison' => $row['saison'],
-			'episode' => $row['episode'],
-			'epmax' => $row['epmax'],
-			'etat' => $row['etat'],
-			'img_av' => $row['img_av'],
-			'url' => $row['url'],
-			'last_update' => $row['last_update'],
-		);
+		$films[$id] = $row;
 	}
 
 	foreach ($films as $film) {
@@ -105,24 +79,12 @@ $app->get('/api/films/type/{type}', function ($type) use ($app) {
  *   Find one film by $id
  *
  */
-$app->get('/api/film/{id}', function ($id, Request $request) use ($app) {
+$app->get('/api/films/{id}', function ($id, Request $request) use ($app) {
 	$sql = "SELECT * FROM jos_diabwbs_serie WHERE id=?";
 	$row = $app['db']->fetchAssoc($sql, array($id));
 
 	if ($row) {
-		$film = array(
-			'id' => $row['id'],
-			'state' => $row['state'],
-			'titre' => $row['titre'],
-			'nom_type' => $row['nom_type'],
-			'saison' => $row['saison'],
-			'episode' => $row['episode'],
-			'epmax' => $row['epmax'],
-			'etat' => $row['etat'],
-			'img_av' => $row['img_av'],
-			'url' => $row['url'],
-			'last_update' => $row['last_update'],
-		);
+		$film = $row;
 	} else {
 		throw new \Exception("Aucun film de correspond à l'id ".$id);
 	}
@@ -152,7 +114,7 @@ $app->get('/api/film/{id}', function ($id, Request $request) use ($app) {
  *   Create one film
  *
  */
-$app->post('/api/film/create', function (Request $request) use ($app) {
+$app->post('/api/films', function (Request $request) use ($app) {
 	if (!$request->request->has('titre')) {
 		return $app->json('Paramètre manquant: titre', 400);
 	}
@@ -242,7 +204,7 @@ $app->post('/api/film/create', function (Request $request) use ($app) {
  *   Delete one film by $id
  *
  */
-$app->delete('/api/film/delete/{id}', function ($id, Request $request) use ($app) {
+$app->delete('/api/films/{id}', function ($id, Request $request) use ($app) {
 	// $app['db']->delete('jos_diabwbs_serie', array('id' => $id));
 
 	return $app->json('No content', 204);
@@ -253,25 +215,13 @@ $app->delete('/api/film/delete/{id}', function ($id, Request $request) use ($app
  *   Update one film by $id
  *
  */
-$app->put('/api/film/update/{id}', function ($id, Request $request) use ($app) {
+$app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 
 	$sql = "SELECT * FROM jos_diabwbs_serie WHERE id=?";
 	$row = $app['db']->fetchAssoc($sql, array($id));
 
 	if ($row) {
-		$film = array(
-			'id' => $row['id'],
-			'state' => $row['state'],
-			'titre' => $row['titre'],
-			'nom_type' => $row['nom_type'],
-			'saison' => $row['saison'],
-			'episode' => $row['episode'],
-			'epmax' => $row['epmax'],
-			'etat' => $row['etat'],
-			'img_av' => $row['img_av'],
-			'url' => $row['url'],
-			'last_update' => $row['last_update'],
-		);
+		$film = $row;
 	} else {
 		$app->abort(404, "Aucun film de correspond à l'id ".$id);
 		throw new \Exception("Aucun film de correspond à l'id ".$id);
