@@ -152,7 +152,7 @@ $app->post('/api/films', function (Request $request) use ($app) {
 	if ($request->request->has('img_av')) {
 		$film['img_av'] = $request->request->get('img_av');
 	} else {
-		$film['img_av'] = "";
+		$film['img_av'] = "/images/avatar/aucune.jpg";
 	}
 	if ($request->request->has('url')) {
 		$film['url'] = $request->request->get('url');
@@ -252,7 +252,11 @@ $app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 		$film['etat'] = $request->request->get('etat');
 	}
 	if ($request->request->has('img_av')) {
-		$film['img_av'] = $request->request->get('img_av');
+		if($request->request->get('img_av') == "") {
+			$film['img_av'] = "/images/avatar/aucune.jpg";
+		} else {
+			$film['img_av'] = $request->request->get('img_av');
+		}
 	}
 	if ($request->request->has('url')) {
 		$film['url'] = $request->request->get('url');
