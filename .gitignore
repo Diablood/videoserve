@@ -1,1 +1,2 @@
-app/config/
+app/config/dev.php
+app/config/prod.php
