@@ -233,6 +233,9 @@ $app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 	if ($request->request->has('state')) {
 		$film['state'] = $request->request->get('state');
 	}
+	if($film['checked_out_time'] == "0000-00-00 00:00:00") {
+		$film['checked_out_time'] = date_create()->format('Y-m-d H:i:s');
+	}
 	if ($request->request->has('titre')) {
 		$film['titre'] = $request->request->get('titre');
 	}
