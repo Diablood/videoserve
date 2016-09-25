@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 $app->get('/api/films', function () use ($app) {
 
 	$responseData = array();
-	$sql = "SELECT * FROM jos_diabwbs_serie ORDER BY titre";
+	$sql = "SELECT s.*, c.nom, c.description FROM jos_diabwbs_serie AS s INNER JOIN serie_cat AS c WHERE s.nom_type=c.id ORDER BY titre";
 	$result = $app['db']->fetchAll($sql);
 
 	$films = array();
@@ -31,7 +31,9 @@ $app->get('/api/films', function () use ($app) {
 			'etat' => $film['etat'],
 			'img_av' => $film['img_av'],
 			'url' => $film['url'],
-			'last_update' => $film['last_update']
+			'last_update' => $film['last_update'],
+			'nom' => $film['nom'],
+			'description' => $film['description']
 		);
 	}
 
@@ -46,7 +48,8 @@ $app->get('/api/films', function () use ($app) {
 $app->get('/api/films/type/{type}', function ($type) use ($app) {
 
 	$responseData = array();
-	$sql = "SELECT * FROM jos_diabwbs_serie WHERE nom_type=? ORDER BY titre";
+	$sql = "SELECT s.*, c.nom, c.description FROM jos_diabwbs_serie AS s INNER JOIN serie_cat AS c WHERE s.nom_type=c.id AND c.id=? ORDER BY titre";
+	// $sql = "SELECT * FROM jos_diabwbs_serie WHERE nom_type=? ORDER BY titre";
 	$result = $app['db']->fetchAll($sql, array($type));
 
 	$films = array();
@@ -67,7 +70,9 @@ $app->get('/api/films/type/{type}', function ($type) use ($app) {
 			'etat' => $film['etat'],
 			'img_av' => $film['img_av'],
 			'url' => $film['url'],
-			'last_update' => $film['last_update']
+			'last_update' => $film['last_update'],
+			'nom' => $film['nom'],
+			'description' => $film['description']
 		);
 	}
 
@@ -80,7 +85,7 @@ $app->get('/api/films/type/{type}', function ($type) use ($app) {
  *
  */
 $app->get('/api/films/{id}', function ($id, Request $request) use ($app) {
-	$sql = "SELECT * FROM jos_diabwbs_serie WHERE id=?";
+	$sql = "SELECT s.*, c.nom, c.description FROM jos_diabwbs_serie AS s INNER JOIN serie_cat AS c WHERE s.id=?";
 	$row = $app['db']->fetchAssoc($sql, array($id));
 
 	if ($row) {
@@ -103,7 +108,9 @@ $app->get('/api/films/{id}', function ($id, Request $request) use ($app) {
 		'etat' => $film['etat'],
 		'img_av' => $film['img_av'],
 		'url' => $film['url'],
-		'last_update' => $film['last_update']
+		'last_update' => $film['last_update'],
+		'nom' => $film['nom'],
+		'description' => $film['description']
 	);
 
 	return $app->json($responseData);
@@ -111,10 +118,109 @@ $app->get('/api/films/{id}', function ($id, Request $request) use ($app) {
 
 /**
  *
+ *   Find all logs
+ *
+ */
+$app->get('/api/logs', function () use ($app) {
+	$responseData = array();
+	$sql = "SELECT h.id, h.last_update, h.action, h.saison, h.episode, h.detail, s.titre, s.img_av FROM history AS h INNER JOIN jos_diabwbs_serie AS s WHERE h.id_serie=s.id ORDER BY last_update";
+	$result = $app['db']->fetchAll($sql);
+
+	$logs = array();
+	foreach ( $result as $row ) {
+		$id = $row['id'];
+		$logs[$id] = $row;
+	}
+
+	foreach ($logs as $log) {
+		$responseData[] = array(
+			'id' => $log['id'],
+			'last_update' => $log['last_update'],
+			'action' => $log['action'],
+			'titre' => $log['titre'],
+			'saison' => $log['saison'],
+			'episode' => $log['episode'],
+			'detail' => json_decode($log['detail']),
+			'img_av' => $log['img_av'],
+		);
+	}
+
+	return $app->json($responseData);
+})->bind('api_log_films');
+
+/**
+ *
+ *   Find all logs by $state
+ *
+ */
+$app->get('/api/logs/type/{type}', function ($type) use ($app) {
+	$responseData = array();
+	$sql = "SELECT h.id, h.last_update, h.action, h.saison, h.episode, h.detail, s.titre, s.img_av FROM history AS h INNER JOIN jos_diabwbs_serie AS s INNER JOIN serie_cat AS c WHERE h.id_serie=s.id AND s.nom_type=c.id AND c.id=?  ORDER BY last_update";
+	$result = $app['db']->fetchAll($sql, array($type));
+
+	$logs = array();
+	foreach ( $result as $row ) {
+		$id = $row['id'];
+		$logs[$id] = $row;
+	}
+
+	foreach ($logs as $log) {
+		$responseData[] = array(
+			'id' => $log['id'],
+			'last_update' => $log['last_update'],
+			'action' => $log['action'],
+			'titre' => $log['titre'],
+			'saison' => $log['saison'],
+			'episode' => $log['episode'],
+			'detail' => json_decode($log['detail']),
+			'img_av' => $log['img_av'],
+		);
+	}
+
+	return $app->json($responseData);
+})->bind('api_log_films_state');
+
+/**
+ *
+ *   Find all logs by $id
+ *
+ */
+$app->get('/api/logs/{id}', function ($id) use ($app) {
+	$responseData = array();
+	$sql = "SELECT h.id, h.last_update, h.action, h.saison, h.episode, h.detail, s.titre, s.img_av FROM history AS h INNER JOIN jos_diabwbs_serie AS s WHERE h.id_serie=s.id AND s.id=?  ORDER BY last_update";
+	$result = $app['db']->fetchAll($sql, array($id));
+
+	$logs = array();
+	foreach ( $result as $row ) {
+		$id = $row['id'];
+		$logs[$id] = $row;
+	}
+
+	foreach ($logs as $log) {
+		$responseData[] = array(
+			'id' => $log['id'],
+			'last_update' => $log['last_update'],
+			'action' => $log['action'],
+			'titre' => $log['titre'],
+			'saison' => $log['saison'],
+			'episode' => $log['episode'],
+			'detail' => json_decode($log['detail']),
+			'img_av' => $log['img_av'],
+		);
+	}
+
+	return $app->json($responseData);
+})->bind('api_log_film');
+
+/**
+ *
  *   Create one film
  *
  */
 $app->post('/api/films', function (Request $request) use ($app) {
+
+	$log = array();
+
 	if (!$request->request->has('titre')) {
 		return $app->json('Paramètre manquant: titre', 400);
 	}
@@ -196,6 +302,17 @@ $app->post('/api/films', function (Request $request) use ($app) {
 		'last_update' => $film['last_update']
 	);
 
+	// LOG
+	$filmlog = array(
+		'last_update' => $film['last_update'],
+		'id_serie' => $id,
+		'action' => 'CREATE',
+		'saison' => $film['saison'],
+		'episode' => $film['episode'],
+		'detail' => json_encode($log)
+	);
+	$app['db']->insert('history', $filmlog);
+
 	return $app->json($responseData, 201);
 })->bind('api_film_add');
 
@@ -217,6 +334,8 @@ $app->delete('/api/films/{id}', function ($id, Request $request) use ($app) {
  */
 $app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 
+	$log = array();
+
 	$sql = "SELECT * FROM jos_diabwbs_serie WHERE id=?";
 	$row = $app['db']->fetchAssoc($sql, array($id));
 
@@ -237,15 +356,19 @@ $app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 		$film['checked_out_time'] = date_create()->format('Y-m-d H:i:s');
 	}
 	if ($request->request->has('titre')) {
+		if($film['titre'] != $request->request->get('titre')) 	$log['titre'] = $film['titre'];
 		$film['titre'] = $request->request->get('titre');
 	}
 	if ($request->request->has('nom_type')) {
+		if($film['nom_type'] != $request->request->get('nom_type')) 	$log['nom_type'] = $film['nom_type'];
 		$film['nom_type'] = $request->request->get('nom_type');
 	}
 	if ($request->request->has('saison')) {
+		if($film['saison'] != $request->request->get('saison')) 	$log['saison'] = $film['saison'];
 		$film['saison'] = $request->request->get('saison');
 	}
 	if ($request->request->has('episode')) {
+		if($film['episode'] != $request->request->get('episode')) 	$log['episode'] = $film['episode'];
 		$film['episode'] = $request->request->get('episode');
 	}
 	if ($request->request->has('epmax')) {
@@ -255,6 +378,7 @@ $app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 		$film['etat'] = $request->request->get('etat');
 	}
 	if ($request->request->has('img_av')) {
+		if($film['img_av'] != $request->request->get('img_av')) 	$log['img_av'] = $film['img_av'];
 		if($request->request->get('img_av') == "") {
 			$film['img_av'] = "/images/avatar/aucune.jpg";
 		} else {
@@ -279,8 +403,20 @@ $app->put('/api/films/{id}', function ($id, Request $request) use ($app) {
 		'etat' => $film['etat'],
 		'img_av' => $film['img_av'],
 		'url' => $film['url'],
-		'last_update' => $film['last_update']
+		'last_update' => $film['last_update'],
+		'log' => json_encode($log)
 	);
+
+	// LOG
+	$filmlog = array(
+		'last_update' => $film['last_update'],
+		'id_serie' => $id,
+		'action' => 'UPDATE',
+		'saison' => $film['saison'],
+		'episode' => $film['episode'],
+		'detail' => json_encode($log)
+	);
+	$app['db']->insert('history', $filmlog);
 
 	return $app->json($responseData, 202);
 })->bind('api_film_update');
