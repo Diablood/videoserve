@@ -82,7 +82,7 @@ $app->get('/api/films/type/{type}', function ($type) use ($app) {
  *
  */
 $app->get('/api/films/{id}', function ($id, Request $request) use ($app) {
-	$sql = "SELECT s.*, c.nom, c.description, c.etat as state FROM series AS s INNER JOIN categories AS c WHERE s.id=?";
+	$sql = "SELECT s.*, c.nom, c.description, c.etat as state FROM series AS s INNER JOIN categories AS c WHERE s.categorie=c.id AND s.id=?";
 	$row = $app['db']->fetchAssoc($sql, array($id));
 
 	if ($row) {
