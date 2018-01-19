@@ -14,6 +14,10 @@ class ComposerStaticInit7c169cd8762c47e356e103749ec5bc26
     );
 
     public static $prefixLengthsPsr4 = array (
+        'T' => 
+        array (
+            'Twig\\' => 5,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Util\\' => 22,
@@ -44,6 +48,10 @@ class ComposerStaticInit7c169cd8762c47e356e103749ec5bc26
     );
 
     public static $prefixDirsPsr4 = array (
+        'Twig\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/twig/twig/src',
+        ),
         'Symfony\\Polyfill\\Util\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-util',
@@ -119,6 +127,20 @@ class ComposerStaticInit7c169cd8762c47e356e103749ec5bc26
     );
 
     public static $prefixesPsr0 = array (
+        'T' => 
+        array (
+            'Twig_' => 
+            array (
+                0 => __DIR__ . '/..' . '/twig/twig/lib',
+            ),
+        ),
+        'S' => 
+        array (
+            'Symfony\\Bridge\\Twig' => 
+            array (
+                0 => __DIR__ . '/..' . '/symfony/twig-bridge',
+            ),
+        ),
         'P' => 
         array (
             'Pimple' => 
