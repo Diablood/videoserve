@@ -2,10 +2,10 @@
 
 // Doctrine (db)
 $app['db.options'] = array(
-    'dbname' => 'diabloodwebsite',
-    'user' => 'diablood',
-    'password' => 'Lunaire29',
-    'host' => '127.0.0.1',
+    'dbname' => 'c1_apivm_db',
+    'user' => 'c1_apivm_dba',
+    'password' => 'ywDknTE!C2',
+    'host' => 'localhost',
     'driver' => 'pdo_mysql',
   	'charset'  => 'utf8',
 );
