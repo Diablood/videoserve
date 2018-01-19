@@ -6,7 +6,7 @@
     },
     "autoload": {
         "psr-0": {
-            "App": "app/src/"
+            "App": "src/"
         }
     }
 }
