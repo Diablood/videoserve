@@ -18,7 +18,7 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
             'anonymous' => true, // Indispensable car la zone de login se trouve dans la zone sécurisée (tout le front-office)
             'form' => array('login_path' => '/', 'check_path' => 'connexion'),
             'logout' => array('logout_path' => '/deconnexion'), // url à appeler pour se déconnecter
-            'users' => $app->share(function() use ($app) {
+            'users' => (function($app) {
                 // La classe App\User\UserProvider est spécifique à notre application et est décrite plus bas
                 return new App\User\UserProvider($app['db']);
             }),
