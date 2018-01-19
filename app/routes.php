@@ -1,6 +1,13 @@
 <?php
 
 use Symfony\Component\HttpFoundation\Request;
+ 
+$app->get('/api/login', function(Request $request) use ($app) {
+    return $app['twig']->render('index.twig', array(
+        'error' => $app['security.last_error']($request),
+        'last_username' => $app['session']->get('_security.last_username'),
+    ));
+});
 
 /**
  *

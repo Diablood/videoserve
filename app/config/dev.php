@@ -4,7 +4,7 @@
 $app['db.options'] = array(
     'dbname' => 'diablood',
     'user' => 'diablood',
-    'password' => 'password',
+    'password' => 'Lunaire29',
     'host' => '127.0.0.1',
     'driver' => 'pdo_mysql',
   	'charset'  => 'utf8',
