@@ -15,8 +15,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * ControllerResolver.
- *
  * This implementation uses the '_controller' request attribute to determine
  * the controller to execute and uses the request attributes to determine
  * the controller method arguments.
@@ -28,13 +26,27 @@ class ControllerResolver implements ArgumentResolverInterface, ControllerResolve
     private $logger;
 
     /**
-     * Constructor.
+     * If the ...$arg functionality is available.
      *
-     * @param LoggerInterface $logger A LoggerInterface instance
+     * Requires at least PHP 5.6.0 or HHVM 3.9.1
+     *
+     * @var bool
      */
+    private $supportsVariadic;
+
+    /**
+     * If scalar types exists.
+     *
+     * @var bool
+     */
+    private $supportsScalarTypes;
+
     public function __construct(LoggerInterface $logger = null)
     {
         $this->logger = $logger;
+
+        $this->supportsVariadic = method_exists('ReflectionParameter', 'isVariadic');
+        $this->supportsScalarTypes = method_exists('ReflectionParameter', 'getType');
     }
 
     /**
@@ -104,6 +116,12 @@ class ControllerResolver implements ArgumentResolverInterface, ControllerResolve
     }
 
     /**
+     * @param Request                $request
+     * @param callable               $controller
+     * @param \ReflectionParameter[] $parameters
+     *
+     * @return array The arguments to use when calling the action
+     *
      * @deprecated This method is deprecated as of 3.1 and will be removed in 4.0. Implement the ArgumentResolverInterface and inject it in the HttpKernel instead.
      */
     protected function doGetArguments(Request $request, $controller, array $parameters)
@@ -114,7 +132,7 @@ class ControllerResolver implements ArgumentResolverInterface, ControllerResolve
         $arguments = array();
         foreach ($parameters as $param) {
             if (array_key_exists($param->name, $attributes)) {
-                if (PHP_VERSION_ID >= 50600 && $param->isVariadic() && is_array($attributes[$param->name])) {
+                if ($this->supportsVariadic && $param->isVariadic() && is_array($attributes[$param->name])) {
                     $arguments = array_merge($arguments, array_values($attributes[$param->name]));
                 } else {
                     $arguments[] = $attributes[$param->name];
@@ -123,6 +141,8 @@ class ControllerResolver implements ArgumentResolverInterface, ControllerResolve
                 $arguments[] = $request;
             } elseif ($param->isDefaultValueAvailable()) {
                 $arguments[] = $param->getDefaultValue();
+            } elseif ($this->supportsScalarTypes && $param->hasType() && $param->allowsNull()) {
+                $arguments[] = null;
             } else {
                 if (is_array($controller)) {
                     $repr = sprintf('%s::%s()', get_class($controller[0]), $controller[1]);
@@ -196,7 +216,7 @@ class ControllerResolver implements ArgumentResolverInterface, ControllerResolve
         }
 
         if (2 !== count($callable)) {
-            return sprintf('Invalid format for controller, expected array(controller, method) or controller::method.');
+            return 'Invalid format for controller, expected array(controller, method) or controller::method.';
         }
 
         list($controller, $method) = $callable;

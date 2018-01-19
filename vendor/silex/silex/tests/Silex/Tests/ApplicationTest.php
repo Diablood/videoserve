@@ -11,26 +11,28 @@
 
 namespace Silex\Tests;
 
+use Fig\Link\GenericLinkProvider;
+use Fig\Link\Link;
+use PHPUnit\Framework\TestCase;
 use Silex\Application;
 use Silex\ControllerCollection;
 use Silex\Api\ControllerProviderInterface;
 use Silex\Route;
-use Silex\Provider\MonologServiceProvider;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\Debug\ErrorHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\WebLink\HttpHeaderSerializer;
 
 /**
  * Application test cases.
  *
  * @author Igor Wiedler <igor@wiedler.ch>
  */
-class ApplicationTest extends \PHPUnit_Framework_TestCase
+class ApplicationTest extends TestCase
 {
     public function testMatchReturnValue()
     {
@@ -86,7 +88,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $routes = $app['routes'];
         $this->assertInstanceOf('Symfony\Component\Routing\RouteCollection', $routes);
-        $this->assertEquals(0, count($routes->all()));
+        $this->assertCount(0, $routes->all());
     }
 
     public function testGetRoutesWithRoutes()
@@ -103,9 +105,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $routes = $app['routes'];
         $this->assertInstanceOf('Symfony\Component\Routing\RouteCollection', $routes);
-        $this->assertEquals(0, count($routes->all()));
+        $this->assertCount(0, $routes->all());
         $app->flush();
-        $this->assertEquals(2, count($routes->all()));
+        $this->assertCount(2, $routes->all());
     }
 
     public function testOnCoreController()
@@ -458,7 +460,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testRegisterShouldReturnSelf()
     {
         $app = new Application();
-        $provider = $this->getMock('Pimple\ServiceProviderInterface');
+        $provider = $this->getMockBuilder('Pimple\ServiceProviderInterface')->getMock();
 
         $this->assertSame($app, $app->register($provider));
     }
@@ -537,19 +539,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         unset($app['exception_handler']);
         $app->match('/')->bind('homepage');
         $app->handle(Request::create('/'));
-    }
-
-    public function testRedirectDoesNotRaisePHPNoticesWhenMonologIsRegistered()
-    {
-        $app = new Application();
-
-        ErrorHandler::register(null, false);
-        $app['monolog.logfile'] = 'php://memory';
-        $app->register(new MonologServiceProvider());
-        $app->get('/foo/', function () { return 'ok'; });
-
-        $response = $app->handle(Request::create('/foo'));
-        $this->assertEquals(301, $response->getStatusCode());
     }
 
     public function testBeforeFilterOnMountedControllerGroupIsolatedToGroup()
@@ -668,6 +657,26 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle(Request::create('/foo'));
 
         $this->assertEquals('Hello view listener', $response->getContent());
+    }
+
+    public function testWebLinkListener()
+    {
+        if (!class_exists(HttpHeaderSerializer::class)) {
+            self::markTestSkipped('Symfony WebLink component is required.');
+        }
+
+        $app = new Application();
+
+        $app->get('/', function () {
+            return 'hello';
+        });
+
+        $request = Request::create('/');
+        $request->attributes->set('_links', (new GenericLinkProvider())->withLink(new Link('preload', '/foo.css')));
+
+        $response = $app->handle($request);
+
+        $this->assertEquals('</foo.css>; rel="preload"', $response->headers->get('Link'));
     }
 
     public function testDefaultRoutesFactory()

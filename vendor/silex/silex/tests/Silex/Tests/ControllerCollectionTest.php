@@ -11,6 +11,7 @@
 
 namespace Silex\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Silex\Application;
 use Silex\Controller;
 use Silex\ControllerCollection;
@@ -23,13 +24,13 @@ use Symfony\Component\Routing\RouteCollection;
  *
  * @author Igor Wiedler <igor@wiedler.ch>
  */
-class ControllerCollectionTest extends \PHPUnit_Framework_TestCase
+class ControllerCollectionTest extends TestCase
 {
     public function testGetRouteCollectionWithNoRoutes()
     {
         $controllers = new ControllerCollection(new Route());
         $routes = $controllers->flush();
-        $this->assertEquals(0, count($routes->all()));
+        $this->assertCount(0, $routes->all());
     }
 
     public function testGetRouteCollectionWithRoutes()
@@ -39,7 +40,7 @@ class ControllerCollectionTest extends \PHPUnit_Framework_TestCase
         $controllers->match('/bar', function () {});
 
         $routes = $controllers->flush();
-        $this->assertEquals(2, count($routes->all()));
+        $this->assertCount(2, $routes->all());
     }
 
     public function testControllerFreezing()
@@ -184,6 +185,23 @@ class ControllerCollectionTest extends \PHPUnit_Framework_TestCase
         $controllers->assert('id', '\d+');
         $controller = $controllers->match('/{id}/{name}/{extra}', function () {})->assert('name', '\w+')->assert('extra', '.*');
         $controllers->assert('extra', '\w+');
+
+        $this->assertEquals('\d+', $controller->getRoute()->getRequirement('id'));
+        $this->assertEquals('\w+', $controller->getRoute()->getRequirement('name'));
+        $this->assertEquals('\w+', $controller->getRoute()->getRequirement('extra'));
+    }
+
+    public function testAssertWithMountCallable()
+    {
+        $controllers = new ControllerCollection(new Route());
+        $controller = null;
+        $controllers->mount('/{name}', function ($mounted) use (&$controller) {
+            $mounted->assert('name', '\w+');
+            $mounted->mount('/{id}', function ($mounted2) use (&$controller) {
+                $mounted2->assert('id', '\d+');
+                $controller = $mounted2->match('/{extra}', function () {})->assert('extra', '\w+');
+            });
+        });
 
         $this->assertEquals('\d+', $controller->getRoute()->getRequirement('id'));
         $this->assertEquals('\w+', $controller->getRoute()->getRequirement('name'));

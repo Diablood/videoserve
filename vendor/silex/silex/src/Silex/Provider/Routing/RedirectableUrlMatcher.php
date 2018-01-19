@@ -48,7 +48,7 @@ class RedirectableUrlMatcher extends BaseRedirectableUrlMatcher
 
         return array(
             '_controller' => function ($url) { return new RedirectResponse($url, 301); },
-            '_route' => null,
+            '_route' => $route,
             'url' => $url,
         );
     }

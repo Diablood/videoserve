@@ -11,6 +11,7 @@
 
 namespace Silex\Tests\Provider;
 
+use PHPUnit\Framework\TestCase;
 use Silex\Application;
 use Silex\Provider\TranslationServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
@@ -27,7 +28,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  *
  * Javier Lopez <f12loalf@gmail.com>
  */
-class ValidatorServiceProviderTest extends \PHPUnit_Framework_TestCase
+class ValidatorServiceProviderTest extends TestCase
 {
     public function testRegister()
     {
@@ -81,7 +82,7 @@ class ValidatorServiceProviderTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatorServiceIsAValidator($app)
     {
-        $this->assertTrue($app['validator'] instanceof ValidatorInterface || $app['validator'] instanceof LegacyValidatorInterface );
+        $this->assertTrue($app['validator'] instanceof ValidatorInterface || $app['validator'] instanceof LegacyValidatorInterface);
     }
 
     /**
@@ -109,8 +110,8 @@ class ValidatorServiceProviderTest extends \PHPUnit_Framework_TestCase
         $form->submit(array('email' => $email));
 
         $this->assertEquals($isValid, $form->isValid());
-        $this->assertEquals($nbGlobalError, count($form->getErrors()));
-        $this->assertEquals($nbEmailError, count($form->offsetGet('email')->getErrors()));
+        $this->assertCount($nbGlobalError, $form->getErrors());
+        $this->assertCount($nbEmailError, $form->offsetGet('email')->getErrors());
     }
 
     public function testValidatorWillNotAddNonexistentTranslationFiles()
@@ -190,5 +191,16 @@ class ValidatorServiceProviderTest extends \PHPUnit_Framework_TestCase
         $app['validator'];
 
         $this->assertEquals('Pas vide', $app['translator']->trans('This value should not be blank.', array(), 'validators', 'fr'));
+    }
+
+    public function testTranslatorResourcesIsArray()
+    {
+        $app = new Application();
+        $app['locale'] = 'fr';
+
+        $app->register(new ValidatorServiceProvider());
+        $app->register(new TranslationServiceProvider());
+
+        $this->assertInternalType('array', $app['translator.resources']);
     }
 }

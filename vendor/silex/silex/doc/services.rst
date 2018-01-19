@@ -159,7 +159,12 @@ using the ``protect`` method::
     // calling it now
     echo $add(2, 3);
 
-Note that protected closures do not get access to the container.
+Note that the container is not provided as an argument to protected closures.
+However, you can inject it via `use($app)`::
+
+    $app['closure_parameter'] = $app->protect(function ($a, $b) use ($app) {
+        // ...
+    });
 
 Core services
 -------------
@@ -167,7 +172,7 @@ Core services
 Silex defines a range of services.
 
 * **request_stack**: Controls the lifecycle of requests, an instance of
-  `RequestStack <http://api.symfony.com/master/Symfony/Component/HttpFoundation/RequestStack.html>` _.
+  `RequestStack <http://api.symfony.com/master/Symfony/Component/HttpFoundation/RequestStack.html>`_.
   It gives you access to ``GET``, ``POST`` parameters and lots more!
 
   Example usage::

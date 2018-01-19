@@ -31,10 +31,6 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
     )
 ));
 
-$app->register(new Silex\Provider\TwigServiceProvider(), array(
-    'twig.path' => __DIR__ . '/views',
-));
-
 // Register JSON data decoder for JSON requests
 $app->before(function (Request $request) {
 	if (0 === strpos($request->headers->get('Content-Type'), 'application/json;')) {
