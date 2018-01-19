@@ -9,3 +9,6 @@ $app['db.options'] = array(
     'driver' => 'pdo_mysql',
   	'charset'  => 'utf8',
 );
+
+// enable the debug mode
+$app['debug'] = true;
